@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en"
+xmlns:th="http://www.thymeleaf.org"
+th:fragment="configFragment">
+
+<head>
+	<meta charset="UTF-8">
+	<!--아래 2개 meta : post 작업시 필요-->
+	<meta name="_csrf" th:content="${_csrf.token}">
+	<meta name="_csrf_header" th:content="${_csrf.headerName}">
+
+	<title>마비프로젝트</title>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+	<!--Bootstrap Css-->
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css">
+	<!--Font-aweome-->	
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins&display=swap">
+
+	
+	<link rel="stylesheet" href="/css/common.css">
+
+	
+	<!--Common JS, CSS -->
+	<!-- 타임리프코드?로는 이렇게 쓰는거 같은데 일단 주석.. 이거먼대..
+	<script th:inline="javascript" type="text/javascript" th:src="@{/lib/jquery-3.6.1.min.js}"></script>
+	<script th:inline="javascript" type="text/javascript" th:src="@{/lib/jquery-ui.min.js}"></script>
+	<link th:inline="css" th:href="@{/lib/jquery-ui.min.css}" rel="stylesheet"/>
+	-->
+</head>
+</html>

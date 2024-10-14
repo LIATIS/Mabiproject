@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en"
+	  xmlns:th="http://www.thymeleaf.org"
+	  xmlns:layout="http:/www.ultraq.net.nz/thymeleaf/layout"
+	  layout:decorate="common/layout/defaultLayout"
+	  layout:fragment="content">
+<head>
+<style>
+	:root{
+	    --background-theme:#e6e9f0;
+	    --text-color:#000;
+	}
+	body{
+	    width:100%;
+	    background-color:var(--background-theme);
+	}
+</style>
+</head>
+
+<body>
+	<div>
+		<br><br>
+		<div class="container join-container">
+			<div class="mt-4 p-4">
+				<h1>회원가입</h1>
+				<p>회원가입을 환영합니다. [todo] 이메일 인증 기능을 넣을껀데 넘모 귀찮습니다</p>
+			</div>
+			<div class="joinDiv" style="padding: 0 0 50 0; height:300px;">
+				<form method="post" id="dataForm" name="dataForm">
+					<div class="inputDiv">
+						<input type="text" id="userId" name="userId" placeholder="아이디" onkeydown="blankChk()" />
+						<div id="idInfo" class="wInfo"></div>
+					</div>
+					<br>
+					<div class="inputDiv">
+						<input type="password" id="userPw" name="userPw" placeholder="비밀번호" onkeydown="blankChk()" />
+						<div id="pwInfo" class="wInfo"></div>
+					</div>
+					<br>
+					<div class="inputDiv">
+						<input type="text" id="userNm" name="userNm" placeholder="닉네임" onkeydown="blankChk()" />
+						<div id="nmInfo" class="wInfo"></div>
+					</div>
+					<br>
+					<div class="tc">
+						<button type="button" id="btnSubmit" name="btnSubmit" class="btn btn1">가입하기</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
+
+<script th:inline="javascript">
+	var token = $("meta[name='_csrf']").attr("content");
+	var header = $("meta[name='_csrf_header']").attr("content");
+	$(document).ajaxSend(function(e, xhr, options) { xhr.setRequestHeader(header, token); });
+		
+	var idChk = false;			//id 정규식체크
+	var idDupliChk = false;		//id 중복체크
+	var pwChk = false;
+	var nmChk = false;
+	var emailChk = false;
+	
+	//아이디중복 및 정규식 검사
+	$('#userId').blur(function(){
+		var idVal = $('#userId').val();
+		var regExp = /^[a-z0-9_-]{4,20}$/;
+		var result = regExp.test(idVal);
+		
+		console.log(idVal)
+		
+		//입력값 공백일 때 안내문구만 표출
+		if(idVal == ""){
+			idChk = false;
+			idDupliChk = false;
+			$('#userId').css('border-color', 'red');
+			$('#idInfo').text("4~20자의 영문 소문자, 숫자, 특수기호(_),(-)만 사용 가능합니다.");
+			return;
+
+		}else{
+			idChk = true;
+			
+			//정규식 통과시 아이디 중복체크
+			if(result == true){
+				const userDTO = {
+					id:idVal,
+				};
+				
+				console.log(userDTO)
+				
+				$.ajax({
+					url : "/checkUserDupli",
+					type : "POST",
+					//contentType : 'application/json; charset=utf-8',	// 이거쓰면 userDTO 파람 인식안댐
+					data : userDTO, //$("#dataForm").serialize(),
+					dataType: 'JSON',
+			        success : function (data) {
+						console.log(data)
+			            if(data.dataCnt >= "1"){
+							idDupliChk = false;
+							$('#userId').css('border-color', 'red');
+							$('#idInfo').text("사용할 수 없는 아이디 입니다.");
+			            } else {
+							idDupliChk = true;
+							$('#userId').css('border-color', 'black');
+							$('#idInfo').text("");
+			            }
+		            }
+		        });
+				
+			//정규식 불통과
+			}else{
+				idChk = false;
+				idDupliChk = false;
+				$('#userId').css('border-color', 'red');
+				$('#idInfo').text("4~20자의 영문 소문자, 숫자, 특수기호(_),(-)만 사용 가능합니다.");
+				return;
+			}
+		}
+	});
+	
+	//비밀번호 정규식 검사
+	$('#userPw').blur(function(){
+		var regExp = /^(?=.*[a-zA-Z])(?=.*[0-9]).{8,16}$/
+		var result = regExp.test( $('#userPw').val() );
+
+		if(result == true){
+			pwChk = true;
+			$('#userPw').css('border-color', 'black');
+			$('#pwInfo').text("");
+
+		}else{
+			pwChk = false;
+			$('#userPw').css('border-color', 'red');
+			$('#pwInfo').text("8~16자의 영문 대/소문자, 숫자는 필수 입력입니다.");
+		}
+	});
+	
+	//닉네임
+	$('#userNm').blur(function(){
+		var nmVal = $('#userNm').val();
+		var nmLength = $('#userNm').val().length;
+		
+		if(nmVal != "" && nmLength <= 10){
+			nmChk = true;
+			$('#userNm').css('border-color', 'black');
+			$('#nmInfo').text("");
+		}else{
+			nmChk = false;
+			$('#userNm').css('border-color', 'red');
+			$('#nmInfo').text("10자 이하의 닉네임을 작성하세요.");
+		}
+	});
+	
+	
+	//이메일 전송
+	$('#btnEmail').click(function(){
+		
+	});
+	
+	
+	//가입하기
+	$('#btnSubmit').click(function(){
+		console.log("가입")
+				
+		if(idChk == true){				//정규식통과
+			if(idDupliChk == false){	//중복된 아이디
+				$('#userId').css('border-color', 'red');
+				$('#idInfo').text("사용할 수 없는 아이디 입니다.");
+			}
+		}else if(idChk == false){	//정규식 불통과
+			$('#userId').css('border-color', 'red');
+			$('#idInfo').text("4~20자의 영문 소문자, 숫자, 특수기호(_),(-)만 사용 가능합니다.");
+		}
+		
+		if(pwChk == false){
+			$('#userPw').css('border-color', 'red');
+			$('#pwInfo').text("8~16자의 영문 대/소문자, 숫자는 필수 입력입니다.");
+		}
+		if(nmChk == false){
+			$('#userNm').css('border-color', 'red');
+			$('#nmInfo').text("10자 이하의 닉네임을 작성하세요.");
+		}
+		/*
+		if(emailChk == false){
+			$('#email').css('border-color', 'red');
+			$('#emailInfo').text("이메일 인증이 되지 않았습니다.");
+		}
+		*/
+
+		//조건 하나라도 안맞으면 종료
+		if(idChk == false || idDupliChk == false || pwChk == false|| nmChk == false){ //|| emailChk == false
+			return;
+		}
+		
+		const idVal = $('#userId').val();
+		const pwVal = $('#userPw').val();
+		const nmVal = $('#userNm').val();
+		const emVal = $('#email').val();
+		const userDTO = {
+			id:idVal,
+			pw:pwVal,
+			name:nmVal,
+			email:emVal,
+		};
+
+  		  $.ajax({
+	        url : "/insertUser",
+	        type : "POST",
+//			contentType : 'application/json; charset=utf-8',
+	        data : userDTO, //$("#dataForm").serialize(),
+//	        dataType: 'JSON',
+	        success : function (data) {
+	            if(data.resultCd == "0"){
+	                alert("가입되었습니다.");
+					//window.self.location = "/login"
+					//로그인화면으로 리다이렉트
+	            }else if(data.resultCd == "-99") {
+	                alert("사용할 수 없는 아이디 입니다.\n아이디를 확인하세요.");
+					idDupliChk = false;
+					$('#userId').css('border-color', 'red');
+					$('#idInfo').text("사용할 수 없는 아이디 입니다.");
+
+	            }else{
+					alert("회원가입 실패!");
+				}
+            }
+        });
+
+		/*
+		$.post("/insertUser", userDTO).done(function(data) {
+			if(data.code == 1){
+			}else{
+			}
+		});
+		*/
+				
+	});
+	
+	
+	//input 스페이스 금지
+	function blankChk(){
+		var kcode = event.keyCode;
+		if(kcode == 32) event.returnValue = false;
+	}
+	
+	/*
+	//패스워드 눈 아이콘
+	$('.eyes').on('click', function(){
+		$(this).toggleClass('active');
+
+		if($(this).hasClass('active')){
+			$(this).find('.fa-eye').attr('class', "fa fa-eye-slash fa-lg").parents('.input-group').find('#userPw').attr('type', "text");
+		}else{
+			$(this).find('.fa-eye-slash').attr('class', "fa fa-eye fa-lg").parents('.input-group').find('#userPw').attr('type', "password");
+		}
+	});
+	*/
+		
+</script>
